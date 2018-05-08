@@ -1,0 +1,52 @@
+version: '3.6'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.3
+    container_name: elasticsearch
+    volumes:
+      - ./configs/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - /usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - efk
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.2.3
+    container_name: kibana
+    volumes:
+      - ./configs/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+      - /usr/share/kibana/data
+    ports:
+      - "5601:5601"
+    networks:
+      - efk
+    depends_on:
+      - elasticsearch
+
+  fluentd:
+    build: ./images/fluentd
+    container_name: fluentd
+    volumes:
+      - ./configs/fluent.conf:/fluentd/etc/fluent.conf:ro
+    ports:
+      - "5140:5140"
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - efk
+    logging:
+        driver: "json-file"
+        options:
+          max-size: 100m
+          max-file: "5"
+    depends_on:
+      - elasticsearch
+
+networks:
+  efk:
+    driver: bridge

@@ -28,6 +28,25 @@ services:
     depends_on:
       - elasticsearch
 
+  fluentd:
+    build: ./images/fluentd
+    container_name: fluentd
+    volumes:
+      - ./configs/fluent.conf:/fluentd/etc/fluent.conf:ro
+    ports:
+      - "5140:5140"
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - efk
+    logging:
+        driver: "json-file"
+        options:
+          max-size: 100m
+          max-file: "5"
+    depends_on:
+      - elasticsearch
+
 networks:
   efk:
     driver: bridge

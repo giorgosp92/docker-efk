@@ -5,12 +5,15 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.6.1
     container_name: elasticsearch
     volumes:
-      - ./configs/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
       - /usr/share/elasticsearch/data
     ports:
       - "9200:9200"
       - "9300:9300"
     environment:
+      node.name: elasticsearch
+      bootstrap.memory_lock: "true"
+      cluster.name: "docker-cluster"
+      discovery.type: single-node
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
       - efk
@@ -18,16 +21,9 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana-oss:7.6.1
     container_name: kibana
-    volumes:
-      - ./configs/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
-      - /usr/share/kibana/data
     ports:
       - "5601:5601"
     networks:
       - efk
     depends_on:
       - elasticsearch
-
-networks:
-  efk:
-    driver: bridge
